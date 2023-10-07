@@ -1,180 +1,11 @@
 type Query {
-  """
-  Get a specific character by ID
-  """
-  character("" id: ID!): Character
+  launches("The number of results to show. Must be >= 1. Default = 20" pageSize: Int, "If you add a cursor here, it will only return results _after_ this cursor" after: String): LaunchConnection!
 
-  """
-  Get the list of all characters
-  """
-  characters("" page: Int, "" filter: FilterCharacter): Characters
+  launch(id: ID!): Launch
 
-  """
-  Get a list of characters selected by ids
-  """
-  charactersByIds("" ids: [ID!]!): [Character]
+  me: User
 
-  """
-  Get a specific locations by ID
-  """
-  location("" id: ID!): Location
-
-  """
-  Get the list of all locations
-  """
-  locations("" page: Int, "" filter: FilterLocation): Locations
-
-  """
-  Get a list of locations selected by ids
-  """
-  locationsByIds("" ids: [ID!]!): [Location]
-
-  """
-  Get a specific episode by ID
-  """
-  episode("" id: ID!): Episode
-
-  """
-  Get the list of all episodes
-  """
-  episodes("" page: Int, "" filter: FilterEpisode): Episodes
-
-  """
-  Get a list of episodes selected by ids
-  """
-  episodesByIds("" ids: [ID!]!): [Episode]
-}
-
-"""
-The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `"4"`) or integer (such as `4`) input value will be accepted as an ID.
-"""
-scalar ID
-
-type Character {
-  """
-  The id of the character.
-  """
-  id: ID
-
-  """
-  The name of the character.
-  """
-  name: String
-
-  """
-  The status of the character ('Alive', 'Dead' or 'unknown').
-  """
-  status: String
-
-  """
-  The species of the character.
-  """
-  species: String
-
-  """
-  The type or subspecies of the character.
-  """
-  type: String
-
-  """
-  The gender of the character ('Female', 'Male', 'Genderless' or 'unknown').
-  """
-  gender: String
-
-  """
-  The character's origin location
-  """
-  origin: Location
-
-  """
-  The character's last known location
-  """
-  location: Location
-
-  """
-  Link to the character's image.
-  All images are 300x300px and most are medium shots or portraits since they are intended to be used as avatars.
-  """
-  image: String
-
-  """
-  Episodes in which this character appeared.
-  """
-  episode: [Episode]!
-
-  """
-  Time at which the character was created in the database.
-  """
-  created: String
-}
-
-"""
-The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
-"""
-scalar String
-
-type Location {
-  """
-  The id of the location.
-  """
-  id: ID
-
-  """
-  The name of the location.
-  """
-  name: String
-
-  """
-  The type of the location.
-  """
-  type: String
-
-  """
-  The dimension in which the location is located.
-  """
-  dimension: String
-
-  """
-  List of characters who have been last seen in the location.
-  """
-  residents: [Character]!
-
-  """
-  Time at which the location was created in the database.
-  """
-  created: String
-}
-
-type Episode {
-  """
-  The id of the episode.
-  """
-  id: ID
-
-  """
-  The name of the episode.
-  """
-  name: String
-
-  """
-  The air date of the episode.
-  """
-  air_date: String
-
-  """
-  The code of the episode.
-  """
-  episode: String
-
-  """
-  List of characters who have been seen in the episode.
-  """
-  characters: [Character]!
-
-  """
-  Time at which the episode was created in the database.
-  """
-  created: String
+  totalTripsBooked: Int
 }
 
 """
@@ -182,70 +13,96 @@ The `Int` scalar type represents non-fractional signed whole numeric values. Int
 """
 scalar Int
 
-input FilterCharacter {
+"""
+The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
+"""
+scalar String
+
+"""
+Simple wrapper around our list of launches that contains a cursor to the
+last item in the list. Pass this cursor to the launches query to fetch results
+after these.
+"""
+type LaunchConnection {
+  cursor: String!
+
+  hasMore: Boolean!
+
+  launches: [Launch]!
+}
+
+"""
+The `Boolean` scalar type represents `true` or `false`.
+"""
+scalar Boolean
+
+type Launch {
+  id: ID!
+
+  site: String
+
+  mission: Mission
+
+  rocket: Rocket
+
+  isBooked: Boolean!
+}
+
+"""
+The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `"4"`) or integer (such as `4`) input value will be accepted as an ID.
+"""
+scalar ID
+
+type Mission {
   name: String
 
-  status: String
+  missionPatch(size: PatchSize): String
+}
 
-  species: String
+enum PatchSize {
+  SMALL
+
+  LARGE
+}
+
+type Rocket {
+  id: ID!
+
+  name: String
 
   type: String
-
-  gender: String
 }
 
-type Characters {
-  info: Info
+type User {
+  id: ID!
 
-  results: [Character]
+  email: String!
+
+  profileImage: String
+
+  trips: [Launch]!
+
+  token: String
 }
 
-type Info {
-  """
-  The length of the response.
-  """
-  count: Int
+type Mutation {
+  bookTrips(launchIds: [ID]!): TripUpdateResponse!
 
-  """
-  The amount of pages.
-  """
-  pages: Int
+  cancelTrip(launchId: ID!): TripUpdateResponse!
 
-  """
-  Number of the next page (if it exists)
-  """
-  next: Int
-
-  """
-  Number of the previous page (if it exists)
-  """
-  prev: Int
+  login(email: String): User
 }
 
-input FilterLocation {
-  name: String
+type TripUpdateResponse {
+  success: Boolean!
 
-  type: String
+  message: String
 
-  dimension: String
+  launches: [Launch]
 }
 
-type Locations {
-  info: Info
-
-  results: [Location]
-}
-
-input FilterEpisode {
-  name: String
-
-  episode: String
-}
-
-type Episodes {
-  info: Info
-
-  results: [Episode]
+type Subscription {
+  tripsBooked: Int
 }
 
 """
@@ -347,11 +204,6 @@ enum __TypeKind {
   """
   NON_NULL
 }
-
-"""
-The `Boolean` scalar type represents `true` or `false`.
-"""
-scalar Boolean
 
 """
 Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type.
@@ -514,18 +366,10 @@ enum __DirectiveLocation {
   INPUT_FIELD_DEFINITION
 }
 
-enum CacheControlScope {
-  PUBLIC
-
-  PRIVATE
-}
-
 """
 The `Upload` scalar type represents a file upload.
 """
 scalar Upload
-
-directive @cacheControl ("" maxAge: Int, "" scope: CacheControlScope) on FIELD_DEFINITION|OBJECT|INTERFACE
 
 """
 Directs the executor to skip this field or fragment when the `if` argument is true.
@@ -544,4 +388,6 @@ directive @deprecated ("Explains why this element was deprecated, usually also i
 
 schema {
   query: Query
+  mutation: Mutation
+  subscription: Subscription
 }

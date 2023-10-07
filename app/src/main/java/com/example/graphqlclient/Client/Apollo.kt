@@ -22,7 +22,7 @@ import okhttp3.Response
 }*/
 
 val apolloClient = ApolloClient.Builder()
-    .serverUrl("https://rickandmortyapi.com/graphql")
+    .serverUrl("https://apollo-fullstack-tutorial.herokuapp.com/graphql")
 
     .webSocketReopenWhen { throwable, attempt ->
         Log.d("Apollo", "WebSocket got disconnected, reopening after a delay", throwable)
