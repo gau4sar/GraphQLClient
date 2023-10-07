@@ -1,0 +1,7 @@
+query Query {
+  characters(filter: {name: "Morty"}) {
+    results {
+      name
+    }
+  }
+}
